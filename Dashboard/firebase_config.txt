@@ -1,0 +1,39 @@
+
+npm install firebase
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAAYc4rOWxmwlEGmUe8Li8h4Cl__GDfayY",
+  authDomain: "esp32-pfcd.firebaseapp.com",
+  projectId: "esp32-pfcd",
+  storageBucket: "esp32-pfcd.appspot.com",
+  messagingSenderId: "783185584593",
+  appId: "1:783185584593:web:87c2b4175f51297fc4c0f0",
+  measurementId: "G-0R6ENZBNPH"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+// reglas 
+
+// These rules grant access to a node matching the authenticated
+// user's ID from the Firebase auth token
+{
+  "rules": {
+    "UsersData": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}

@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESP IoT Firebase - Digital Control </title>
+
+    <!-- update the version number as needed -->
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
+
+    <!-- include only the Firebase features as you need -->
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/all/gauge.min.js"></script>
+  
+
+    <script>
+     // REPLACE WITH YOUR web app's Firebase configuration
+     const firebaseConfig = {
+      apiKey: "AIzaSyAAYc4rOWxmwlEGmUe8Li8h4Cl__GDfayY",
+      authDomain: "esp32-pfcd.firebaseapp.com",
+      projectId: "esp32-pfcd",
+      storageBucket: "esp32-pfcd.appspot.com",
+      messagingSenderId: "783185584593",
+      appId: "1:783185584593:web:87c2b4175f51297fc4c0f0",
+      measurementId: "G-0R6ENZBNPH"
+    };
+
+      // Initialize firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Make auth and database references
+      const auth = firebase.auth();
+      const db = firebase.database();
+
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+  <!--TOP BAR-->
+  <div class="topnav">
+    <h1>Pendulum On A Cart <i class="fa-car-wrench"></i></h1>
+  </div>
+
+
+  <!--LOGIN FORM-->
+  <form id="login-form" style="display: none;">
+    <div class="form-elements-container">
+      <label for="input-email"><b>Email</b></label>
+      <input type="text" placeholder="Enter Username" id="input-email" required>
+
+      <label for="input-password"><b>Password</b></label>
+      <input type="password" placeholder="Enter Password" id="input-password" required>
+
+      <button type="submit" id="login-button">Login</button>
+      <p id="error-message" style="color:red;"></p>
+    </div>
+  </form>
+
+  <!--CONTENT (SENSOR READINGS)-->
+  <div class="content-sign-in" id="content-sign-in">
+    <div class="cards">
+      <!--LED-->
+      <div class="card card-switch\"><h4><i class="fas fa-lightbulb\"></i>MODO<span id="mode_action">-Manual Car</span></h4><label class="switch"><input type="checkbox" onchange="toggleMode(this);" id="mode"><span class="slider"></span></label></div>            
+      <!-- CONTROL MANUAL -->
+      <div id="control_car">
+        <div class="card">
+          <p><i class="fas fa-gamepad" style="color:#2b76e7;"></i> CONTROL MANUAL</p>
+          <div class="up">
+            <button id="up_button" onclick="upCommand(this)">
+              <i class="fas fa-arrow-up"></i>
+            </button>
+          </div>
+          <div class="center">
+            <button id="left_button" onclick="leftCommand(this)">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <button id="stop_button" style=" margin: 8px 8px;" onclick="stopCommand(this)">
+              <i class="fas fa-stop"></i>
+            </button>
+            <button id="right_button" onclick="rightCommand(this)">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="down">
+            <button id="down_button" onclick="downCommand(this)">
+              <i class="fas fa-arrow-down"></i>
+            </button>
+          </div>     
+        </div>
+      </div>
+      <!-- CONTROL PENDULUM -->
+
+      <div id="control_pendulum" hidden>
+
+        <div class="card">
+          <h4><i class="fas fa-chart-bar" style="color:#1b8845;"></i> CONTROL PENDULUM</h4>
+          <label class="switch"><input type="checkbox" onchange="toggleState(this);" id="pendulum_state"><span class="slider"></span></label>
+          <div>
+            <label for="kp_label">KP: <input id="kp_label" type="number" step="0.01" value="1.0"></label>
+            <button id="kp_button" onclick="kpCommand();">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <div>
+            <label for="ki_label">  KI: <input id="ki_label" type="number" step="0.01" value="1.0"></label>
+            <button id="ki_button" onclick="kiCommand();">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <div>
+            <label for="kd_label">KD: <input id="kd_label" type="number" step="0.01" value="1.0"></label>
+            <button id="kd_button" onclick="kdCommand();">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>          
+        </div>
+
+        
+      </div>
+      
+      <!--TEMPERATURE-->
+      <div class="card" hidden>
+        <p><i class="fas fa-thermometer-half" style="color:#e72b3b;"></i> Angulo</p>
+        <p><span class="reading"><span id="angle"></span> &deg;</span></p>
+      </div>
+      <!--HUMIDITY-->
+      <div class="card" hidden>
+        <p><i class="fas fa-tint" style="color:#00add6;"></i> HUMEDAD</p>
+        <p><span class="reading"><span id="hum"></span> &percnt;</span></p>
+      </div>
+      <!--PRESSURE-->
+      <div class="card" hidden>
+        <p><i class="fas fa-rocket" style="color:#e47637;"></i> PRESIÓN</p>
+        <p><span class="reading"><span id="pres"></span> hPa</span></p>
+      </div> 
+          
+    </div>
+     
+    <!--CHARTS-->
+    <!--  <div id="charts-div" style="display:none"> -->
+    <div id="charts-div" hidden>
+      <!--SET NUMBER OF READINGS INPUT FIELD-->
+      <div>
+        <p> GRAFICAS</p>
+      </div>
+      <!--TEMPERATURE-CHART-->
+      <div class="cards">
+        <div class="card">
+          <p><i class="fas fa-angle-left" style="color:#059e8a;"></i> ANGULAR POSITION CHART</p>
+          <div id="chart-angle" class="chart-container"></div>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+
+  <!--AUTHENTICATION BAR (USER DETAILS/LOGOUT BUTTON)-->
+  <div id="authentication-bar" style="display: none;">
+    <p><span id="authentication-status">Usuario Logged</span>
+       <span id="user-details">USEREMAIL</span>
+       <a href="/" id="logout-link">(logout)</a>
+    </p>
+  </div>
+  
+
+  <script src="scripts/index.js"></script>
+  <script src="scripts/auth.js"></script>
+  <script src="scripts/charts-definitions.js"></script>
+  </body>
+</html>
