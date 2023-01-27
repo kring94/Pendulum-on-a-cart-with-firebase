@@ -3,9 +3,9 @@
 //================================================================= //
 #include <Arduino.h>
 #if defined(ESP32)
-  #include <WiFi.h>
+#include <WiFi.h>
 #elif defined(ESP8266)
-  #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #endif
 #include <Firebase_ESP_Client.h>
 
@@ -41,17 +41,35 @@ String uid;
 
 // Variables to save database paths
 String databasePath;
-String tempPath;
-String humPath;
-String presPath;
-String ledPath;
+// String tempPath;
+// String humPath;
+// String presPath;
+// String ledPath;
 
-float temperature;
-float humidity;
-float pressure;
-const int led = 5;//led
-const int potPin = 34;//analogo read
-int potValue = 0;
+String anglePath;
+String kiPath;
+String kpPath;
+String kdPath;
+String statePath;
+String modePath;
+String upPath;
+String DownPath;
+String leftPath;
+String rightPath;
+String stopPath;
+
+float angle;
+float kp;
+float ki;
+float kd;
+bool state;
+bool mode;
+bool up;
+bool Down;
+bool left;
+bool right;
+bool stop;
+
 
 // Timer variables (send new readings every three minutes)
 unsigned long sendDataPrevMillis = 0;
@@ -67,4 +85,107 @@ void initWiFi();
 void sendFloat(String path, float value);
 
 // Read data from Database
-void readData(String path);
+bool readData(String path);
+
+void WIFIsetup() {
+  // Initialize BME280 sensor
+  //initBME();
+  initWiFi();
+
+  // Assign the api key (required)
+  config.api_key = API_KEY;
+
+  // Assign the user sign in credentials
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+
+  // Assign the RTDB URL (required)
+  config.database_url = DATABASE_URL;
+
+  Firebase.reconnectWiFi(true);
+  fbdo.setResponseSize(4096);
+
+  // Assign the callback function for the long running token generation task */
+  config.token_status_callback = tokenStatusCallback;  //see addons/TokenHelper.h
+
+  // Assign the maximum retry of token generation
+  config.max_token_generation_retry = 5;
+
+  // Initialize the library with the Firebase authen and config
+  Firebase.begin(&config, &auth);
+
+  // Getting the user UID might take a few seconds
+  Serial.println("Getting User UID");
+  while ((auth.token.uid) == "") {
+    Serial.print('.');
+    delay(1000);
+  }
+  // Print user UID
+  uid = auth.token.uid.c_str();
+  Serial.print("User UID: ");
+  Serial.println(uid);
+
+  // Update database path
+  databasePath = "/UsersData/" + uid;
+
+  anglePath = databasePath + "/angle";
+  kiPath = databasePath + "/ki";
+  kpPath = databasePath + "/kp";
+  kdPath = databasePath + "/kd";
+  statePath = databasePath + "/state";
+  modePath = databasePath + "/mode";
+  upPath = databasePath + "/up";
+  DownPath = databasePath + "/down";
+  leftPath = databasePath + "/left";
+  rightPath = databasePath + "/right";
+  stopPath = databasePath + "/stop";
+}
+
+// Initialize WiFi
+void initWiFi() {
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to WiFi ..");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+    delay(1000);
+  }
+  Serial.println(WiFi.localIP());
+  Serial.println();
+}
+
+// Write float values to the database
+void sendFloat(String path, float value) {
+  if (Firebase.RTDB.setFloat(&fbdo, path.c_str(), value)) {
+    Serial.print("Writing value: ");
+    Serial.print(value);
+    Serial.print(" on the following path: ");
+    Serial.println(path);
+    Serial.println("PASSED");
+    Serial.println("PATH: " + fbdo.dataPath());
+    Serial.println("TYPE: " + fbdo.dataType());
+  } else {
+    Serial.println("FAILED");
+    Serial.println("REASON: " + fbdo.errorReason());
+  }
+}
+// Read data from database
+bool readData(String path) {
+  String readIncoming = "";
+  if (Firebase.RTDB.getString(&fbdo, path.c_str())) {
+    Serial.println("PATH: " + fbdo.dataPath());
+    Serial.println("TYPE: " + fbdo.dataType());
+    if (fbdo.dataType() == "string") {
+      readIncoming = fbdo.stringData();
+      Serial.println("DATA: " + readIncoming);
+      if (readIncoming == "ON") {
+        return true;  //Return based on String ON/OFF
+      } else {
+        return false;
+      }
+    }
+  } else {
+    return false;
+    Serial.println("FAILED");
+    Serial.println("REASON: " + fbdo.errorReason());
+  }
+}

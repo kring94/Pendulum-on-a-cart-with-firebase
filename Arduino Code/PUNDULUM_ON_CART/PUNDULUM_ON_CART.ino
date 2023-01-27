@@ -1,18 +1,27 @@
-// #include "motor_control_TB6612FNG.h"
-// #include "angle_control_AS5600.h"
-// #include "wifi_instance.h"
+#include "motor_control_TB6612FNG.h"
+#include "angle_control_AS5600.h"
+#include "wifi_instance.h"
 // #include "bluetooth_instance.h"
 
 
 
 
 void setup() {
-  // put your setup code here, to run once:
-
+  Serial.begin(115200);
+  WIFIsetup();
+  AS5600setup();
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  ReadRawAngle();
+  checkQuadrant();
+  angle = correctAngle();
 
+  if(Firebase.ready()){
+    sendFloat(anglePath,angle);
+    mode = readData(modePath);
+    state = readData(statePath);
+    
+  }
 }
