@@ -1,5 +1,5 @@
 // ================================================================ //
-//                      For the use of the WIFI                     //
+//                      For the use of WIFI                     //
 //================================================================= //
 #include <Arduino.h>
 #if defined(ESP32)
@@ -53,27 +53,28 @@ String kdPath;
 String statePath;
 String modePath;
 String upPath;
-String DownPath;
+String downPath;
 String leftPath;
 String rightPath;
 String stopPath;
 
-float angle;
-float kp;
-float ki;
-float kd;
-bool state;
-bool mode;
-bool up;
-bool Down;
-bool left;
-bool right;
-bool stop;
+float angle=0.0;
+float kp=8; //Mine was 8
+float ki=0.2; //Mine was 0.2
+float kd=3100; //Mine was 3100
+
+bool state = false;
+bool mode = false;
+bool up = false;
+bool down = false;
+bool left = false;
+bool right = false;
+bool stop = false;
 
 
 // Timer variables (send new readings every three minutes)
 unsigned long sendDataPrevMillis = 0;
-unsigned long timerDelay = 50;
+unsigned long timerDelay = 100;
 
 // Setup function WIFI
 void WIFIsetup();
@@ -85,7 +86,8 @@ void initWiFi();
 void sendFloat(String path, float value);
 
 // Read data from Database
-bool readData(String path);
+void readData(String path);
+float readNumData(String path);
 
 void WIFIsetup() {
   // Initialize BME280 sensor
@@ -135,7 +137,7 @@ void WIFIsetup() {
   statePath = databasePath + "/state";
   modePath = databasePath + "/mode";
   upPath = databasePath + "/up";
-  DownPath = databasePath + "/down";
+  downPath = databasePath + "/down";
   leftPath = databasePath + "/left";
   rightPath = databasePath + "/right";
   stopPath = databasePath + "/stop";
@@ -169,7 +171,7 @@ void sendFloat(String path, float value) {
   }
 }
 // Read data from database
-bool readData(String path) {
+void readData(String path) {
   String readIncoming = "";
   if (Firebase.RTDB.getString(&fbdo, path.c_str())) {
     Serial.println("PATH: " + fbdo.dataPath());
@@ -178,13 +180,48 @@ bool readData(String path) {
       readIncoming = fbdo.stringData();
       Serial.println("DATA: " + readIncoming);
       if (readIncoming == "ON") {
-        return true;  //Return based on String ON/OFF
+        if(path == modePath) mode = true;     
+        if(path == statePath) state = true;   
+        if(path == upPath) up = true;   
+        if(path == downPath) down = true;   
+        if(path == leftPath) left = true;   
+        if(path == rightPath) right = true;   
+        if(path == stopPath) stop = true;   
       } else {
-        return false;
-      }
+        if(path == modePath) mode = false;     
+        if(path == statePath) state = false;   
+        if(path == upPath) up = false;   
+        if(path == downPath) down = false;   
+        if(path == leftPath) left = false;   
+        if(path == rightPath) right = false;   
+        if(path == stopPath) stop = false;            
+      }      
     }
   } else {
-    return false;
+    Serial.println("FAILED");
+    Serial.println("REASON: " + fbdo.errorReason());
+  }
+}
+
+// Read data from database
+float readNumData(String path) {
+  float readIncoming = 0.0;
+  if (Firebase.RTDB.getString(&fbdo, path.c_str())) {
+    Serial.println("PATH: " + fbdo.dataPath());
+    Serial.println("TYPE: " + fbdo.dataType());
+    if (fbdo.dataType() == "double") {
+      readIncoming = fbdo.floatData();
+      Serial.print("DATA: ");
+      Serial.println(readIncoming);
+      // if (readIncoming == "ON") {
+      //   return true;  //Return based on String ON/OFF
+      // } else {
+      //   return false;
+      // }
+      return readIncoming;
+    }
+  } else {
+    return 999.9;
     Serial.println("FAILED");
     Serial.println("REASON: " + fbdo.errorReason());
   }
