@@ -98,8 +98,8 @@ float correctAngle()
   {
     //do nothing
   }
-  Serial.print("Corrected angle: ");
-  Serial.println(correctedAngle, 2); //print the corrected/tared angle  
+  // Serial.print("Corrected angle: ");
+  // Serial.println(correctedAngle, 2); //print the corrected/tared angle  
   return correctedAngle;
 }
 

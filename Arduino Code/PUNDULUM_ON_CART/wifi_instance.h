@@ -59,9 +59,9 @@ String rightPath;
 String stopPath;
 
 float angle=0.0;
-float kp=8; //Mine was 8
-float ki=0.2; //Mine was 0.2
-float kd=3100; //Mine was 3100
+float kp=7; //Mine was 2
+float ki=5; //Mine was 0.1
+float kd=65536*0.1; //Mine was 15
 
 bool state = false;
 bool mode = false;

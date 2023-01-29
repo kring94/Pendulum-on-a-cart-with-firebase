@@ -136,7 +136,7 @@ void backward(int speed) {
 }
 // left
 
-void toLeft(int maxSpeed) {
+void toLeft(int speed) {
   motorA1("backward", speed);
   motorA2("backward", speed);
   motorB1("forward", speed);
