@@ -23,7 +23,7 @@ float previoustotalAngle = 0; //for the display printing
 // setup function of module AS5600
 void AS5600setup();
 // Angle reading function
-void ReadRawAngle();
+float ReadRawAngle();
 // Angle correction function
 float correctAngle();
 // Check quadrant function
@@ -41,7 +41,7 @@ void AS5600setup()
 }
 
 
-void ReadRawAngle()
+float ReadRawAngle()
 { 
   //7:0 - bits
   Wire.beginTransmission(0x36); //connect to the sensor
@@ -80,8 +80,10 @@ void ReadRawAngle()
   //Multiply the output of the encoder with 0.087890625
   degAngle = rawAngle * 0.087890625; 
   
-  // Serial.print("Deg angle: ");
-  // Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
+  Serial.print("ABS Deg angle: ");
+  Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
+
+  return degAngle;
   
 }
 

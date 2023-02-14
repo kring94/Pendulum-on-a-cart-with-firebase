@@ -41,10 +41,6 @@ String uid;
 
 // Variables to save database paths
 String databasePath;
-// String tempPath;
-// String humPath;
-// String presPath;
-// String ledPath;
 
 String anglePath;
 String kiPath;

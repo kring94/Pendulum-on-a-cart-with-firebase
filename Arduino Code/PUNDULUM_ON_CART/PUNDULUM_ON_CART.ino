@@ -1,14 +1,13 @@
 #include "motor_control_TB6612FNG.h"
 #include "angle_control_AS5600.h"
 // #include "wifi_instance.h"
-// #include "bluetooth_instance.h"
 
 ///--------------------PID constants-------------------
 float angle=0.0;
-float kp=15.01; //Mine 
-float ki=0.403; //Mine
+float kp=8; //Mine 
+float ki=0.303; //Mine
 float angle_ki = 3;
-float kd=1778.9; //Mine 
+float kd=1.2; //Mine 1.7789
 
 float angle_setpoint = 0;         
 float PID_p, PID_i, PID_d, PID_total;
@@ -18,13 +17,15 @@ float PID_p, PID_i, PID_d, PID_total;
 int Read = 0;
 float elapsedTime, currentTime, timePrev;        //Variables for time control
 float angle_previous_error, angle_error, angle_diference;
-int period = 50;  //Refresh rate period of the loop is 50ms
+int period = 9;  //Refresh rate period of the loop is 50ms
 //------------------------------------------------------
 
 int speed = 65536;
+int min_speed = 5000;
 
 void moving();
 void PIDcontrol();
+float customMap(float x, float y);
 
 void setup() {
   Serial.begin(115200);
@@ -78,49 +79,57 @@ void PIDcontrol() {
   
   if (millis() > currentTime+period){
 
-    angle = correctAngle();
-    if(angle > 296 && angle < 360) angle = map(angle,360,296,0,-62);
-    if(angle > 0 && angle < 61) angle = map(angle,0,61,0,61);
-    Serial.println("Angulo: "+String(angle));
-    angle_error = angle_setpoint - angle;
-    PID_p = kp * angle_error; //**** KP
-    angle_diference = angle_error - angle_previous_error;
-    PID_d = kd*((angle_error-angle_previous_error)/period);  //**** KD
-    // PID_i = PID_i + (ki * angle_error); //***** KI
-    if(-angle_ki < angle_diference && angle_error < angle_ki)
-    {
-      PID_i = PID_i + (ki * angle_error);
-    }
-    else
-    {
-      PID_i = 0;
-    }
-
-    PID_total = PID_p + PID_i + PID_d;  
+    // angle = correctAngle(); //Angulo de posición relativa respecto al punto inicial
+    angle = ReadRawAngle(); //Angulo de posición absoluta respecto al modulo
+    if(angle > 296 && angle < 360) angle = -(359.4-angle);
     
-    Serial.println("PID PRE: " + String(PID_total));   
-    // if(PID_total < 0) map(PID_total, -100, 100, 0, speed);
-    PID_total = map(PID_total, 0, 75, 0, speed);
+
+    Serial.println("Angulo: "+ String(angle));
+
+    if(abs(angle)>=20) {
+      brake("ON");
+    } else {
+      Serial.println("Angulo ABS: "+ String(abs(angle)));
     
-  
-    if(PID_total < -speed) PID_total = -speed;
-    if(PID_total > speed) PID_total = speed; 
-    Serial.println("PID POS: " + String(PID_total));
+      angle_error = angle_setpoint - angle;
+      PID_p = kp * angle_error; //**** KP
+      angle_diference = angle_error - angle_previous_error;
+      PID_d = kd*((angle_error-angle_previous_error)/(period*0.001));  //**** KD
+      // PID_i = PID_i + (ki * angle_error); //***** KI
+      if(-angle_ki < angle_diference && angle_error < angle_ki)
+      {
+        PID_i = PID_i + (ki * angle_error);
+      }
+      else
+      {
+        PID_i = 0;
+      }
 
+      PID_total = PID_p + PID_i + PID_d;  
+      
+      Serial.println("PID PRE: " + String(PID_total));   
+      PID_total = map(PID_total, 0, 75, 0, speed);
+      
+    
+      if(PID_total < -speed) PID_total = -speed;
+      if(PID_total > speed) PID_total = speed; 
 
-    Serial.println("Error PRE: "+ String(angle_error));
-    if(angle_error < -0.51){
-      forward(abs(PID_total));
-    }else if(angle_error > 0.51){
-      backward(abs(PID_total));
-    } 
-    else if( (angle_error > -0.5 && angle_error < 0.5) || angle_error < -55 || angle_error > 55){
-      brake();
+      Serial.println("PID POS: " + String(PID_total));
+
+      Serial.println("Error PRE: "+ String(angle_error));
+      if(angle_error < -0.51){
+        forward(abs(PID_total));
+      }else if(angle_error > 0.51){
+        backward(abs(PID_total));
+      } 
+      else if(angle_error > -0.5 && angle_error < 0.5){
+        brake("ON");
+      }
+      angle_previous_error = angle_error;
+      
+      Serial.println("Error POS: "+ String(angle_error));
     }
-    angle_previous_error = angle_error;
-
-    
-    Serial.println("Error POS: "+ String(angle_error));
     
   }
 }
+
