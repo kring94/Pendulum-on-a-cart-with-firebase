@@ -4,10 +4,10 @@
 
 ///--------------------PID constants-------------------
 float angle=0.0;
-float kp=8; //Mine 
-float ki=0.303; //Mine
+float kp=15; //Mine 
+float ki=0.503; //Mine
 float angle_ki = 3;
-float kd=1.2; //Mine 1.7789
+float kd=1778.9; //Mine 1.7789
 
 float angle_setpoint = 0;         
 float PID_p, PID_i, PID_d, PID_total;
@@ -17,7 +17,7 @@ float PID_p, PID_i, PID_d, PID_total;
 int Read = 0;
 float elapsedTime, currentTime, timePrev;        //Variables for time control
 float angle_previous_error, angle_error, angle_diference;
-int period = 9;  //Refresh rate period of the loop is 50ms
+int period = 50;  //Refresh rate period of the loop is 50ms
 //------------------------------------------------------
 
 int speed = 65536;
@@ -79,8 +79,8 @@ void PIDcontrol() {
   
   if (millis() > currentTime+period){
 
-    // angle = correctAngle(); //Angulo de posición relativa respecto al punto inicial
-    angle = ReadRawAngle(); //Angulo de posición absoluta respecto al modulo
+    angle = correctAngle(); //Angulo de posición relativa respecto al punto inicial
+    //angle = ReadRawAngle(); //Angulo de posición absoluta respecto al modulo
     if(angle > 296 && angle < 360) angle = -(359.4-angle);
     
 
@@ -94,7 +94,7 @@ void PIDcontrol() {
       angle_error = angle_setpoint - angle;
       PID_p = kp * angle_error; //**** KP
       angle_diference = angle_error - angle_previous_error;
-      PID_d = kd*((angle_error-angle_previous_error)/(period*0.001));  //**** KD
+      PID_d = kd*((angle_error-angle_previous_error)/(period));  //**** KD
       // PID_i = PID_i + (ki * angle_error); //***** KI
       if(-angle_ki < angle_diference && angle_error < angle_ki)
       {
@@ -108,7 +108,7 @@ void PIDcontrol() {
       PID_total = PID_p + PID_i + PID_d;  
       
       Serial.println("PID PRE: " + String(PID_total));   
-      PID_total = map(PID_total, 0, 75, 0, speed);
+      PID_total = map(PID_total, -75, 75, 0, speed);
       
     
       if(PID_total < -speed) PID_total = -speed;
