@@ -64,3 +64,7 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.
+# private data
+
+Arduino Code/PUNDULUM_ON_CART/private_settings.h

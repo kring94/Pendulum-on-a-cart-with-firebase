@@ -80,8 +80,8 @@ float ReadRawAngle()
   //Multiply the output of the encoder with 0.087890625
   degAngle = rawAngle * 0.087890625; 
   
-  Serial.print("ABS Deg angle: ");
-  Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
+  //Serial.print("ABS Deg angle: ");
+  //Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
 
   return degAngle;
   

@@ -10,7 +10,7 @@
 #include <Firebase_ESP_Client.h>
 
 // Variables for WIFI and Firebase cofiguration
-
+#include "private_settings.h"
 
 // Provide the token generation process info.
 #include "addons/TokenHelper.h"
@@ -18,18 +18,18 @@
 #include "addons/RTDBHelper.h"
 
 // Insert your network credentials
-#define WIFI_SSID "ADVANCED"
-#define WIFI_PASSWORD "3115770876ANTO"
+#define WIFI_SSID _WIFI_SSID
+#define WIFI_PASSWORD _WIFI_PASSWORD
 
 // Insert Firebase project API Key
-#define API_KEY "AIzaSyAAYc4rOWxmwlEGmUe8Li8h4Cl__GDfayY"
+#define API_KEY _API_KEY
 
 // Insert Authorized Email and Corresponding Password
-#define USER_EMAIL "ronald9412@gmail.com"
-#define USER_PASSWORD "15446941204"
+#define USER_EMAIL _USER_EMAIL
+#define USER_PASSWORD _USER_PASSWORD
 
 // Insert RTDB URLefine the RTDB URL
-#define DATABASE_URL "https://esp32-pfcd-default-rtdb.firebaseio.com/"
+#define DATABASE_URL _DATABASE_URL
 
 // Define Firebase objects
 FirebaseData fbdo;
