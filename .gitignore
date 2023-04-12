@@ -66,5 +66,4 @@ node_modules/
 .env
 .
 # private data
-
-Arduino Code/PUNDULUM_ON_CART/private_settings.h
+Arduino_Code/PENDULUM_ON_CART/private_settings.h
